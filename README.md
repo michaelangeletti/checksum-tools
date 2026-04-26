@@ -25,7 +25,7 @@ pip3 install --break-system-packages ".[progress]"
 For progress bar support:
 
 ```bash
-pip install checksum-tools[progress]
+pip3 install checksum-tools[progress]
 ```
 
 ### Option 2: Standalone script
