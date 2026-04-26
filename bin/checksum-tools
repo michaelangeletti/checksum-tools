@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""
+checksum-tools — Generate or verify checksums for a set of files.
+
+This is the command-line entry point. It can be:
+  1. Installed via pip (which auto-generates a wrapper), OR
+  2. Placed directly in /usr/local/bin/ (this script handles both cases)
+"""
+
+import sys
+import os
+
+# If running as a standalone script (not pip-installed), ensure the
+# package is importable by adding the parent directory to sys.path.
+# This handles the case where the checksum_tools package lives alongside
+# this script (e.g., /usr/local/lib/checksum-tools/checksum_tools/).
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_possible_roots = [
+    os.path.dirname(_script_dir),          # ../  (pip layout: bin/ next to lib/)
+    os.path.join(_script_dir, ".."),        # same, relative
+    _script_dir,                            # script is inside the package dir
+]
+for root in _possible_roots:
+    candidate = os.path.join(root, "checksum_tools")
+    if os.path.isdir(candidate):
+        sys.path.insert(0, root)
+        break
+
+from checksum_tools.cli import cli
+
+if __name__ == "__main__":
+    cli()
