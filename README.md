@@ -12,6 +12,16 @@ This is a Python port of the [sul-dlss/checksum-tools](https://github.com/sul-dl
 pip install checksum-tools
 ```
 
+or...
+```
+pip3 install git+https://github.com/yourusername/checksum-tools.git
+```
+
+or...
+```
+pip3 install --break-system-packages ".[progress]"
+```
+
 For progress bar support:
 
 ```bash
