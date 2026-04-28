@@ -40,7 +40,7 @@ class Config:
     dry_run: bool = False
     no_hidden: bool = False
     log_path: Optional[str] = None
-    manifest: bool = False
+    manifest: Optional[str] = None  # None = off, "" = default naming, "path" = custom
 
     def __post_init__(self):
         # Ensure extension always has a leading dot

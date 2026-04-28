@@ -12,20 +12,10 @@ This is a Python port of the [sul-dlss/checksum-tools](https://github.com/sul-dl
 pip install checksum-tools
 ```
 
-or...
-```
-pip3 install git+https://github.com/yourusername/checksum-tools.git
-```
-
-or if you don't care about virtual environments...
-```
-pip3 install --break-system-packages ".[progress]"
-```
-
 For progress bar support:
 
 ```bash
-pip3 install checksum-tools[progress]
+pip install checksum-tools[progress]
 ```
 
 ### Option 2: Standalone script

@@ -141,7 +141,7 @@ class LocalDigester:
         Yields:
             DigestResult for each (file, digest_type) pair processed.
         """
-        manifest_mode = getattr(self.config, "manifest", False)
+        manifest_mode = getattr(self.config, "manifest", None) is not None
 
         for filepath in self._matched_files():
             for digest_type in self.config.digests:

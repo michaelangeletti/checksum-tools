@@ -224,9 +224,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--manifest",
-        action="store_true",
-        default=False,
-        help="Generate a single manifest file instead of per-file sidecars",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="FILE",
+        help="Generate a single manifest file instead of per-file sidecars. "
+             "Optionally specify a filename or path (default: MD5SUMS, SHA256SUMS, etc. "
+             "in the target directory).",
     )
     parser.add_argument(
         "-x",
@@ -295,8 +299,8 @@ def merge_config(args: argparse.Namespace) -> Config:
         config.no_hidden = True
     if args.log:
         config.log_path = args.log
-    if args.manifest:
-        config.manifest = True
+    if args.manifest is not None:
+        config.manifest = args.manifest
 
     return config
 
@@ -534,9 +538,10 @@ def run_generate(config: Config, logger: "Logger | None" = None) -> int:
     )
     count = 0
 
-    if config.manifest:
+    if config.manifest is not None:
         # --- Manifest mode: collect all entries, then write one file per digest type ---
         root = os.path.abspath(config.path)
+        custom_path = config.manifest if config.manifest else None
         # entries_by_type: {digest_type: [(relative_path, hexdigest), ...]}
         entries_by_type: dict[str, list[tuple[str, str]]] = {}
 
@@ -556,10 +561,16 @@ def run_generate(config: Config, logger: "Logger | None" = None) -> int:
             if progress_bar:
                 progress_bar.close()
 
-        # Write manifest files (one per digest type) — collected in memory first
+        # Write manifest files — collected in memory first
         for dtype, entries in entries_by_type.items():
-            manifest_name = _DIGEST_TO_MANIFEST.get(dtype, f"{dtype.upper()}SUMS")
-            manifest_path = os.path.join(root, manifest_name)
+            if custom_path:
+                # User-specified path: use as-is (resolve relative to cwd)
+                manifest_path = os.path.abspath(custom_path)
+                manifest_name = os.path.basename(manifest_path)
+            else:
+                # Default naming: MD5SUMS, SHA256SUMS, etc. in the target directory
+                manifest_name = _DIGEST_TO_MANIFEST.get(dtype, f"{dtype.upper()}SUMS")
+                manifest_path = os.path.join(root, manifest_name)
 
             if os.path.exists(manifest_path) and not config.overwrite:
                 msg = f"{yellow('Warning:')} {manifest_name} already exists, skipping (use -o to overwrite)."
@@ -567,6 +578,11 @@ def run_generate(config: Config, logger: "Logger | None" = None) -> int:
                 if logger:
                     logger.log(_strip_ansi(msg))
                 continue
+
+            # Ensure the output directory exists
+            manifest_dir = os.path.dirname(manifest_path)
+            if manifest_dir and not os.path.isdir(manifest_dir):
+                os.makedirs(manifest_dir, exist_ok=True)
 
             with open(manifest_path, "w", encoding="utf-8", newline="\n") as f:
                 for rel_path, hexdigest in entries:
